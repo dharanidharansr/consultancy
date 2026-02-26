@@ -60,6 +60,8 @@ const Footer = () => {
                 <li><Link href="/all-products" className="block py-2">Products</Link></li>
                 <li><Link href="/contact" className="block py-2">Contact</Link></li>
                 <li><Link href="/privacy-policy" className="block py-2">Privacy Policy</Link></li>
+                <li><Link href="/terms-and-conditions" className="block py-2">Terms & Conditions</Link></li>
+                <li><Link href="/refund-policy" className="block py-2">Refund Policy</Link></li>
               </ul>
             </details>
           </div>
@@ -89,6 +91,8 @@ const Footer = () => {
               <li><Link href="/all-products" className="block py-2">Products</Link></li>
               <li><Link href="/contact" className="block py-2">Contact</Link></li>
               <li><Link href="/privacy-policy" className="block py-2">Privacy Policy</Link></li>
+              <li><Link href="/terms-and-conditions" className="block py-2">Terms & Conditions</Link></li>
+              <li><Link href="/refund-policy" className="block py-2">Refund Policy</Link></li>
             </ul>
           </nav>
 
