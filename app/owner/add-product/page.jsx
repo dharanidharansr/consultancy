@@ -34,11 +34,11 @@ const AddProduct = () => {
     const categoryPackSizes = {
         'Fruits & Vegetables': ['Unit', '250g', '500g', '1kg', '2kg', '5kg'],
         'Dairy & Bakery': ['Unit', 'Pack', '250ml', '500ml', '1L', 'Dozen'],
-        'Staples': ['250g', '500g', '1kg', '5kg', '10kg', '25kg'],
+        'Staples': ['Unit'],
         'Snacks & Branded Foods': ['Unit', 'Pack', '100g', '200g', '500g', '1kg'],
         'Beverages': ['250ml', '500ml', '750ml', '1L', '2L', 'Pack'],
-        'Personal Care': ['Unit', 'Pack', '50ml', '100ml', '200ml', '500ml'],
-        'Home Care': ['Unit', 'Pack', '500ml', '1L', '2L', '5L']
+        'Personal Care': ['Unit'],
+        'Home Care': ['Unit']
     };
 
     // Get pack sizes based on selected category
@@ -254,10 +254,38 @@ const AddProduct = () => {
     }
 
     return (
-        <div className="w-full p-4 md:p-8 bg-gray-50">
+        <div className="w-full p-4 md:p-8 bg-gray-50 dark:bg-gray-900 transition-colors">
             <div className="max-w-6xl mx-auto">
-                <div className="bg-white rounded-lg shadow-lg p-6 md:p-8">
-                    <h1 className="text-2xl md:text-3xl font-bold text-gray-800 mb-8">Add New Product</h1>
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 md:p-8 transition-colors">
+                    <h1 className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-white mb-8">Add New Product</h1>
+
+                    <form onSubmit={handleSubmit} className="space-y-8">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Product Name *
+                                </label>
+                                <input
+                                    type="text"
+                                    value={productData.name}
+                                    onChange={(e) => setProductData(prev => ({ ...prev, name: e.target.value }))}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                                    required
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Brand *
+                                </label>
+                                <input
+                                    type="text"
+                                    value={productData.brand}
+                                    onChange={(e) => setProductData(prev => ({ ...prev, brand: e.target.value }))}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                                    required
+                                />
+                            </div>
 
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -280,6 +308,8 @@ const AddProduct = () => {
                                     </p>
                                 )}
                             </div>
+
+                            <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     Brand *
                                 </label>
@@ -290,23 +320,6 @@ const AddProduct = () => {
                                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
                                     required
                                 />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Category *
-                                </label>
-                                <select
-                                    value={productData.category}
-                                    onChange={(e) => setProductData(prev => ({ ...prev, category: e.target.value }))}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-                                    required
-                                >
-                                    <option value="">Select Category</option>
-                                    {categories.map(cat => (
-                                        <option key={cat} value={cat}>{cat}</option>
-                                    ))}
-                                </select>
                             </div>
 
                             <div>
@@ -474,11 +487,6 @@ const VariantInventoryCard = ({
     onRemoveVariant,
     categoryName
 }) => {
-    const calculateVariantTotal = () => {
-        return variantData.packStock.reduce((total, pack) => total + pack.quantity, 0);
-    };
-
-    return (
     const calculateVariantTotal = () => {
         return variantData.packStock.reduce((total, pack) => total + pack.quantity, 0);
     };

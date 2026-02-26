@@ -5,6 +5,7 @@ import axios from "axios";
 import { useRouter } from "next/navigation";
 import { createContext, useContext, useEffect, useState, useCallback } from "react";
 import toast from "react-hot-toast";
+import { ThemeProvider } from "./ThemeContext";
 
 export const AppContext = createContext();
 
@@ -404,8 +405,10 @@ export const AppContextProvider = (props) => {
     }
 
     return (
-        <AppContext.Provider value={value}>
-            {props.children}
-        </AppContext.Provider>
+        <ThemeProvider>
+            <AppContext.Provider value={value}>
+                {props.children}
+            </AppContext.Provider>
+        </ThemeProvider>
     )
 }
