@@ -75,7 +75,7 @@ export default function PrivacyPolicy() {
               <p className="mt-3">
                 For more information about how Razorpay handles your payment data, please refer to{' '}
                 <a href="https://razorpay.com/privacy/" target="_blank" rel="noopener noreferrer" className="text-orange-600 hover:text-orange-700 underline">
-                  Razorpay's Privacy Policy
+                  Razorpay&apos;s Privacy Policy
                 </a>.
               </p>
             </section>
