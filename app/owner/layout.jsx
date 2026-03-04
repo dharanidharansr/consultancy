@@ -1,5 +1,6 @@
 'use client'
 import React from 'react'
+import Link from 'next/link'
 import { useAppContext } from '@/context/AppContext'
 import Loading from '@/components/Loading'
 import OwnerLayout from '@/components/OwnerLayout'
@@ -35,9 +36,9 @@ const Layout = ({ children }) => {
           <div className="text-5xl mb-4">🚫</div>
           <h2 className="text-xl font-medium mb-2">Access Denied</h2>
           <p className="text-gray-600 mb-4">You don&apos;t have permission to access the owner dashboard.</p>
-          <a href="/" className="bg-orange-600 text-white px-4 py-2 rounded hover:bg-orange-700 font-medium">
+          <Link href="/" className="bg-orange-600 text-white px-4 py-2 rounded hover:bg-orange-700 font-medium">
             Go Home
-          </a>
+          </Link>
         </div>
       </div>
     );

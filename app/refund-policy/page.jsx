@@ -26,7 +26,7 @@ export default function RefundPolicy() {
                 <p className="font-semibold text-blue-800 mb-2">Before Order Processing:</p>
                 <ul className="list-disc list-inside ml-4 space-y-1 text-blue-900">
                   <li>Full refund if cancelled within 1 hour of placing the order</li>
-                  <li>Cancellation can be done directly from "My Orders" page</li>
+                  <li>Cancellation can be done directly from &quot;My Orders&quot; page</li>
                   <li>Refund will be processed within 7-10 business days</li>
                 </ul>
               </div>
@@ -92,7 +92,7 @@ export default function RefundPolicy() {
                   <li>Perishable items after 24 hours of delivery</li>
                   <li>Products with tampered or damaged packaging (by customer)</li>
                   <li>Personal care items that have been opened or used</li>
-                  <li>Items marked as "non-returnable" on product page</li>
+                  <li>Items marked as &quot;non-returnable&quot; on product page</li>
                   <li>Change of mind after delivery</li>
                 </ul>
               </div>
@@ -108,7 +108,7 @@ export default function RefundPolicy() {
                     <span className="bg-orange-600 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3 flex-shrink-0 font-bold">1</span>
                     <div>
                       <p className="font-semibold">Request Submission: Day 0</p>
-                      <p className="text-sm text-gray-600">Submit refund request through "My Orders" or contact support</p>
+                      <p className="text-sm text-gray-600">Submit refund request through &quot;My Orders&quot; or contact support</p>
                     </div>
                   </div>
                   
@@ -158,7 +158,7 @@ export default function RefundPolicy() {
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <h4 className="font-semibold text-blue-900 mb-2">Payment Failure:</h4>
                 <ul className="list-disc list-inside ml-4 space-y-1 text-blue-800">
-                  <li>If money was deducted but order wasn't created, refund is automatic within 5-7 business days</li>
+                  <li>If money was deducted but order wasn&apos;t created, refund is automatic within 5-7 business days</li>
                   <li>Check your bank statement before contacting support</li>
                 </ul>
                 
@@ -190,7 +190,7 @@ export default function RefundPolicy() {
                   </li>
                   <li className="flex items-start">
                     <span className="text-orange-600 font-bold mr-2">Step 2:</span>
-                    <span>Go to "My Orders" section</span>
+                    <span>Go to &quot;My Orders&quot; section</span>
                   </li>
                   <li className="flex items-start">
                     <span className="text-orange-600 font-bold mr-2">Step 3:</span>
@@ -198,7 +198,7 @@ export default function RefundPolicy() {
                   </li>
                   <li className="flex items-start">
                     <span className="text-orange-600 font-bold mr-2">Step 4:</span>
-                    <span>Click "Request Refund" or "Return Order"</span>
+                    <span>Click &quot;Request Refund&quot; or &quot;Return Order&quot;</span>
                   </li>
                   <li className="flex items-start">
                     <span className="text-orange-600 font-bold mr-2">Step 5:</span>
@@ -206,7 +206,7 @@ export default function RefundPolicy() {
                   </li>
                   <li className="flex items-start">
                     <span className="text-orange-600 font-bold mr-2">Step 6:</span>
-                    <span>Submit request and track status in "My Orders"</span>
+                    <span>Submit request and track status in &quot;My Orders&quot;</span>
                   </li>
                 </ol>
                 

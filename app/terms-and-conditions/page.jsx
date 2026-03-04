@@ -19,7 +19,7 @@ export default function TermsAndConditions() {
             <section>
               <h2 className="text-2xl font-semibold text-gray-900 mb-3">1. Agreement to Terms</h2>
               <p>
-                By accessing or using Fresh Mart's website and services, you agree to be bound by these Terms and Conditions. 
+                By accessing or using Fresh Mart&apos;s website and services, you agree to be bound by these Terms and Conditions. 
                 If you do not agree with any part of these terms, you may not use our services.
               </p>
             </section>
@@ -55,7 +55,7 @@ export default function TermsAndConditions() {
 
               <h3 className="text-xl font-semibold text-gray-800 mt-4 mb-2">3.3 Payment Processing</h3>
               <p>
-                We use Razorpay as our payment gateway. All payment transactions are subject to Razorpay's terms and conditions. 
+                We use Razorpay as our payment gateway. All payment transactions are subject to Razorpay&apos;s terms and conditions. 
                 We accept various payment methods including credit/debit cards, UPI, net banking, and digital wallets.
               </p>
               <p className="mt-2">Payment must be completed before order processing begins.</p>

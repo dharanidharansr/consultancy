@@ -109,7 +109,7 @@ export default function AboutPage() {
                                 </div>
                                 <h3 className="text-xl font-bold text-gray-900 mb-4">Freshness Guarantee</h3>
                                 <p className="text-gray-600">
-                                    We carefully inspect every item. If you're not satisfied with the freshness, we'll replace it, no questions asked.
+                                    We carefully inspect every item. If you&apos;re not satisfied with the freshness, we&apos;ll replace it, no questions asked.
                                 </p>
                             </div>
 
@@ -120,7 +120,7 @@ export default function AboutPage() {
                                 </div>
                                 <h3 className="text-xl font-bold text-gray-900 mb-4">Lightning Fast Delivery</h3>
                                 <p className="text-gray-600">
-                                    Our optimized logistics network ensures your groceries reach you in record time, while they're still fresh.
+                                    Our optimized logistics network ensures your groceries reach you in record time, while they&apos;re still fresh.
                                 </p>
                             </div>
 
