@@ -21,33 +21,7 @@ export async function GET(request) {
             .skip(skip)
             .limit(limit);
 
-        // Convert products to ensure backward compatibility
-        const products = rawProducts.map(product => {
-            const productObj = product.toObject();
-
-            // If product has new inventory format but no color array, generate one for backward compatibility
-            if (productObj.inventory && productObj.inventory.length > 0 && (!productObj.color || productObj.color.length === 0)) {
-                productObj.color = productObj.inventory.map(item => ({
-                    color: item.color.name,
-                    stock: item.sizeStock.reduce((sum, sizeStock) => sum + (sizeStock.quantity || 0), 0)
-                }));
-
-                // Generate sizes array if missing
-                if (!productObj.sizes || productObj.sizes.length === 0) {
-                    const allSizes = new Set();
-                    productObj.inventory.forEach(item => {
-                        item.sizeStock.forEach(sizeStock => {
-                            if (sizeStock.quantity > 0) {
-                                allSizes.add(sizeStock.size);
-                            }
-                        });
-                    });
-                    productObj.sizes = Array.from(allSizes);
-                }
-            }
-
-            return productObj;
-        });
+        const products = rawProducts.map(product => product.toObject());
 
         return NextResponse.json({
             success: true,
