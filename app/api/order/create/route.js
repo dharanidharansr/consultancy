@@ -5,6 +5,87 @@ import Order from "@/models/Orders";
 import { getAuth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import connectDB from "@/config/db";
+import mongoose from "mongoose";
+
+const findVariantByName = (inventory, variantName) => {
+    if (!Array.isArray(inventory) || !variantName) return null;
+    return inventory.find(item => item?.variant?.name?.toLowerCase() === variantName.toLowerCase()) || null;
+};
+
+const findPackBySize = (packStock, packSize) => {
+    if (!Array.isArray(packStock) || !packSize) return null;
+    return packStock.find(item => item?.packSize?.toLowerCase() === packSize.toLowerCase()) || null;
+};
+
+const recalculateProductStock = (product) => {
+    const inventory = Array.isArray(product.inventory) ? product.inventory : [];
+    product.totalStock = inventory.reduce((total, variantData) => {
+        const variantTotal = Array.isArray(variantData.packStock)
+            ? variantData.packStock.reduce((sum, packData) => sum + (Number(packData.quantity) || 0), 0)
+            : 0;
+        return total + variantTotal;
+    }, 0);
+
+    product.availableVariants = inventory
+        .filter(variantData => Array.isArray(variantData.packStock) && variantData.packStock.some(packData => (Number(packData.quantity) || 0) > 0))
+        .map(variantData => variantData.variant.name);
+
+    product.availablePackSizes = [...new Set(
+        inventory.flatMap(variantData =>
+            (variantData.packStock || [])
+                .filter(packData => (Number(packData.quantity) || 0) > 0)
+                .map(packData => packData.packSize)
+        )
+    )];
+};
+
+const reserveProductStock = async (productId, variantName, packSize, quantity, session) => {
+    const product = await Product.findById(productId).session(session);
+
+    if (!product) {
+        throw new Error(`Product ${productId} not found`);
+    }
+
+    const trackInventory = product.stockSettings?.trackInventory !== false;
+    if (!trackInventory) {
+        return product;
+    }
+
+    if (Array.isArray(product.inventory) && product.inventory.length > 0) {
+        const variantData = variantName
+            ? findVariantByName(product.inventory, variantName)
+            : (product.inventory.length === 1 ? product.inventory[0] : null);
+        if (!variantData) {
+            throw new Error(`Variant '${variantName}' not found for ${product.name}`);
+        }
+
+        const packData = packSize
+            ? findPackBySize(variantData.packStock, packSize)
+            : (Array.isArray(variantData.packStock) && variantData.packStock.length === 1 ? variantData.packStock[0] : null);
+        if (!packData) {
+            throw new Error(`Pack size '${packSize}' not found for ${product.name}`);
+        }
+
+        const availableQuantity = Number(packData.quantity) || 0;
+        if (availableQuantity < quantity) {
+            throw new Error(`Only ${availableQuantity} left for ${product.name} (${variantName} / ${packSize})`);
+        }
+
+        packData.quantity = availableQuantity - quantity;
+        recalculateProductStock(product);
+        await product.save({ session });
+        return product;
+    }
+
+    const availableQuantity = Number(product.totalStock) || 0;
+    if (availableQuantity < quantity) {
+        throw new Error(`Only ${availableQuantity} left for ${product.name}`);
+    }
+
+    product.totalStock = availableQuantity - quantity;
+    await product.save({ session });
+    return product;
+};
 
 
 
@@ -104,6 +185,8 @@ export async function POST(request) {
 
         console.log(`Order amount calculation: Base: ₹${amount}, Tax (2%): ₹${taxAmount}, Final: ₹${finalAmount}`);
 
+        const session = await mongoose.startSession();
+
         try {
             const orderData = {
                 userId: userId.toString(), // Ensure it's a string
@@ -115,16 +198,31 @@ export async function POST(request) {
                 date: Math.floor(Date.now() / 1000) // Convert milliseconds to seconds for Unix timestamp
             };
 
-            console.log('Order data for creation:', orderData);
-            const newOrder = await Order.create(orderData);
-            console.log('Order created successfully with ID:', newOrder._id);
+            await session.withTransaction(async () => {
+                for (const item of orderItems) {
+                    await reserveProductStock(
+                        item.product,
+                        item.color,
+                        item.size,
+                        Number(item.quantity) || 0,
+                        session
+                    );
+                }
+                console.log('Inventory updated successfully for all order items');
+
+                console.log('Order data for creation:', orderData);
+                const [newOrder] = await Order.create([orderData], { session });
+                console.log('Order created successfully with ID:', newOrder._id);
+            });
         } catch (orderError) {
-            console.error('Order creation failed:', orderError);
+            console.error('Order creation or inventory update failed:', orderError);
             return NextResponse.json({
                 success: false,
-                message: `Order creation failed: ${orderError.message}`,
+                message: orderError.message || 'Failed to create order',
                 details: orderError.errors ? JSON.stringify(orderError.errors) : null
-            });
+            }, { status: 400 });
+        } finally {
+            await session.endSession();
         }
 
         // clear user cart
