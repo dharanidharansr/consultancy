@@ -8,6 +8,8 @@ import Contact from '@/models/Contact';
 
 export async function GET(request) {
     try {
+        const { searchParams } = new URL(request.url);
+        const period = searchParams.get('period') || 'all';
         const { userId, sessionClaims } = await auth();
 
         // Check if user is authenticated
@@ -42,23 +44,38 @@ export async function GET(request) {
 
         await connectDB();
 
+        const now = new Date();
+        const periodStart = new Date(now);
+
+        if (period === 'weekly') {
+            periodStart.setDate(now.getDate() - 7);
+        } else if (period === 'monthly') {
+            periodStart.setMonth(now.getMonth() - 1);
+        }
+
+        const hasPeriodFilter = period === 'weekly' || period === 'monthly';
+        const orderDateThreshold = hasPeriodFilter ? Math.floor(periodStart.getTime() / 1000) : null;
+        const orderFilter = hasPeriodFilter ? { date: { $gte: orderDateThreshold } } : {};
+        const productFilter = hasPeriodFilter ? { date: { $gte: orderDateThreshold } } : {};
+        const contactFilter = hasPeriodFilter ? { submittedAt: { $gte: periodStart } } : {};
+
         // Fetch all statistics
         const [
             totalUsers,
-            totalSellers,
             totalOrders,
             totalProducts,
             totalContacts,
             recentOrders,
             allOrders,
         ] = await Promise.all([
-            User.countDocuments(),
-            User.countDocuments({ 'publicMetadata.role': 'seller' }),
-            Order.countDocuments(),
-            Product.countDocuments(),
-            Contact.countDocuments(),
-            Order.find().sort({ date: -1 }).limit(10),
-            Order.find(),
+            hasPeriodFilter
+                ? Order.distinct('userId', orderFilter).then(users => users.filter(Boolean).length)
+                : User.countDocuments(),
+            Order.countDocuments(orderFilter),
+            Product.countDocuments(productFilter),
+            Contact.countDocuments(contactFilter),
+            Order.find(orderFilter).sort({ date: -1 }).limit(10),
+            Order.find(orderFilter),
         ]);
 
         // Calculate total revenue
@@ -71,36 +88,10 @@ export async function GET(request) {
             ordersByStatus[status] = (ordersByStatus[status] || 0) + 1;
         });
 
-        // Get top sellers by order count
-        const topSellerOrders = await Order.aggregate([
-            {
-                $group: {
-                    _id: '$userId',
-                    count: { $sum: 1 },
-                    revenue: { $sum: '$amount' }
-                }
-            },
-            { $sort: { count: -1 } },
-            { $limit: 5 }
-        ]);
-
-        const topSellers = await Promise.all(
-            topSellerOrders.map(async (seller) => {
-                const user = await User.findById(seller._id).select('name email');
-                return {
-                    userId: seller._id,
-                    name: user?.name || 'Unknown',
-                    orders: seller.count,
-                    revenue: seller.revenue
-                };
-            })
-        );
-
         return NextResponse.json({
             success: true,
             data: {
                 totalUsers,
-                totalSellers,
                 totalOrders,
                 totalRevenue: Math.round(totalRevenue),
                 totalProducts,
@@ -112,8 +103,8 @@ export async function GET(request) {
                     status: order.status,
                     date: order.date
                 })),
-                topSellers,
                 ordersByStatus,
+                period,
             }
         });
     } catch (error) {

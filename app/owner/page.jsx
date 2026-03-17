@@ -10,6 +10,7 @@ const OwnerDashboard = () => {
     const { getToken, user } = useAppContext();
     const router = useRouter();
     const [loading, setLoading] = useState(true);
+    const [selectedPeriod, setSelectedPeriod] = useState('all');
     const [stats, setStats] = useState({
         totalUsers: 0,
         totalOrders: 0,
@@ -18,14 +19,16 @@ const OwnerDashboard = () => {
         totalContacts: 0,
         recentOrders: [],
         ordersByStatus: {},
+        period: 'all',
     });
 
-    const fetchOwnerStats = useCallback(async () => {
+    const fetchOwnerStats = useCallback(async (period = selectedPeriod) => {
         try {
             setLoading(true);
             const token = await getToken();
 
             const response = await axios.get('/api/admin/stats', {
+                params: { period },
                 headers: { Authorization: `Bearer ${token}` }
             });
 
@@ -40,13 +43,25 @@ const OwnerDashboard = () => {
         } finally {
             setLoading(false);
         }
-    }, [getToken]);
+    }, [getToken, selectedPeriod]);
 
     useEffect(() => {
         if (user) {
-            fetchOwnerStats();
+            fetchOwnerStats(selectedPeriod);
         }
-    }, [user, fetchOwnerStats]);
+    }, [user, fetchOwnerStats, selectedPeriod]);
+
+    const periodOptions = [
+        { value: 'all', label: 'All Time' },
+        { value: 'weekly', label: 'Weekly' },
+        { value: 'monthly', label: 'Monthly' },
+    ];
+
+    const periodLabel = stats.period === 'weekly'
+        ? 'Last 7 Days'
+        : stats.period === 'monthly'
+            ? 'Last 30 Days'
+            : 'All Time';
 
     const StatCard = ({ label, value, icon, color = 'blue' }) => {
         const colorClasses = {
@@ -81,7 +96,8 @@ const OwnerDashboard = () => {
     return (
         <div className="p-4 md:p-6 lg:p-8 w-full bg-gray-50 min-h-screen pt-6 md:pt-8">
             <div className="mb-6 md:mb-8">
-                <div className="flex items-center gap-3 mb-2">
+                <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-2">
+                    <div className="flex items-center gap-3">
                     <button
                         onClick={() => router.back()}
                         className="inline-flex items-center justify-center w-8 h-8 rounded-full border border-gray-300 text-gray-700 hover:bg-gray-100"
@@ -89,17 +105,32 @@ const OwnerDashboard = () => {
                     >
                         ←
                     </button>
-                    <h1 className="text-3xl md:text-4xl font-bold text-gray-900">Glossary Mart Dashboard</h1>
+                        <h1 className="text-3xl md:text-4xl font-bold text-gray-900">Glossary Mart Dashboard</h1>
+                    </div>
+                    <div className="inline-flex rounded-xl border border-gray-200 bg-white p-1 shadow-sm">
+                        {periodOptions.map((option) => (
+                            <button
+                                key={option.value}
+                                onClick={() => setSelectedPeriod(option.value)}
+                                className={`rounded-lg px-4 py-2 text-sm font-medium transition ${selectedPeriod === option.value
+                                    ? 'bg-orange-500 text-white shadow-sm'
+                                    : 'text-gray-600 hover:bg-gray-100'
+                                    }`}
+                            >
+                                {option.label}
+                            </button>
+                        ))}
+                    </div>
                 </div>
-                <p className="text-gray-600 mt-2">Welcome back, {user?.name || 'Partner'}</p>
+                <p className="text-gray-600 mt-2">Welcome back, {user?.name || 'Partner'} · Showing {periodLabel}</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-                <StatCard label="Total Customers" value={stats.totalUsers} icon="👥" color="blue" />
-                <StatCard label="Orders" value={stats.totalOrders} icon="📦" color="green" />
-                <StatCard label="Revenue" value={`₹${stats.totalRevenue.toLocaleString()}`} icon="💰" color="orange" />
-                <StatCard label="Products" value={stats.totalProducts} icon="🛍️" color="blue" />
-                <StatCard label="Messages" value={stats.totalContacts} icon="💬" color="red" />
+                <StatCard label={selectedPeriod === 'all' ? 'Total Customers' : 'Active Customers'} value={stats.totalUsers} icon="👥" color="blue" />
+                <StatCard label={selectedPeriod === 'all' ? 'Orders' : `${periodLabel} Orders`} value={stats.totalOrders} icon="📦" color="green" />
+                <StatCard label={selectedPeriod === 'all' ? 'Revenue' : `${periodLabel} Revenue`} value={`₹${stats.totalRevenue.toLocaleString()}`} icon="💰" color="orange" />
+                <StatCard label={selectedPeriod === 'all' ? 'Products' : `${periodLabel} Products`} value={stats.totalProducts} icon="🛍️" color="blue" />
+                <StatCard label={selectedPeriod === 'all' ? 'Messages' : `${periodLabel} Messages`} value={stats.totalContacts} icon="💬" color="red" />
             </div>
 
             <div className="mb-8">
@@ -130,7 +161,7 @@ const OwnerDashboard = () => {
                         </div>
                     </Link>
                     <button
-                        onClick={fetchOwnerStats}
+                        onClick={() => fetchOwnerStats(selectedPeriod)}
                         className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-lg transition cursor-pointer text-center"
                     >
                         <div className="text-2xl mb-2">🔄</div>

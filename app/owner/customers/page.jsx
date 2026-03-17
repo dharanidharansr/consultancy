@@ -75,12 +75,10 @@ const OwnerCustomers = () => {
         switch (role) {
             case 'admin':
                 return 'bg-red-100 text-red-800';
-            case 'seller':
-                return 'bg-purple-100 text-purple-800';
             case 'customer':
                 return 'bg-blue-100 text-blue-800';
             default:
-                return 'bg-gray-100 text-gray-800';
+                return 'bg-blue-100 text-blue-800';
         }
     };
 
@@ -121,7 +119,6 @@ const OwnerCustomers = () => {
                         >
                             <option value="all">All Roles</option>
                             <option value="customer">Customers</option>
-                            <option value="seller">Sellers</option>
                             <option value="admin">Admins</option>
                         </select>
                     </div>
@@ -204,7 +201,6 @@ const OwnerCustomers = () => {
                                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                                 >
                                     <option value="customer">Customer</option>
-                                    <option value="seller">Seller</option>
                                     <option value="admin">Admin</option>
                                 </select>
                             </div>
