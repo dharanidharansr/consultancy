@@ -10,6 +10,8 @@ export async function GET(request) {
     try {
         const { searchParams } = new URL(request.url);
         const period = searchParams.get('period') || 'all';
+        const startDate = searchParams.get('startDate');
+        const endDate = searchParams.get('endDate');
         const { userId, sessionClaims } = await auth();
 
         // Check if user is authenticated
@@ -46,18 +48,73 @@ export async function GET(request) {
 
         const now = new Date();
         const periodStart = new Date(now);
+        let rangeStart = null;
+        let rangeEnd = null;
 
         if (period === 'weekly') {
             periodStart.setDate(now.getDate() - 7);
+            rangeStart = periodStart;
+            rangeEnd = now;
         } else if (period === 'monthly') {
             periodStart.setMonth(now.getMonth() - 1);
+            rangeStart = periodStart;
+            rangeEnd = now;
+        } else if (period === 'custom') {
+            if (!startDate || !endDate) {
+                return NextResponse.json({
+                    success: false,
+                    message: 'startDate and endDate are required for custom period'
+                }, { status: 400 });
+            }
+
+            const parsedStart = new Date(`${startDate}T00:00:00.000Z`);
+            const parsedEnd = new Date(`${endDate}T23:59:59.999Z`);
+
+            if (Number.isNaN(parsedStart.getTime()) || Number.isNaN(parsedEnd.getTime())) {
+                return NextResponse.json({
+                    success: false,
+                    message: 'Invalid date format. Use YYYY-MM-DD'
+                }, { status: 400 });
+            }
+
+            if (parsedStart > parsedEnd) {
+                return NextResponse.json({
+                    success: false,
+                    message: 'startDate must be before or equal to endDate'
+                }, { status: 400 });
+            }
+
+            rangeStart = parsedStart;
+            rangeEnd = parsedEnd;
         }
 
-        const hasPeriodFilter = period === 'weekly' || period === 'monthly';
-        const orderDateThreshold = hasPeriodFilter ? Math.floor(periodStart.getTime() / 1000) : null;
-        const orderFilter = hasPeriodFilter ? { date: { $gte: orderDateThreshold } } : {};
-        const productFilter = hasPeriodFilter ? { date: { $gte: orderDateThreshold } } : {};
-        const contactFilter = hasPeriodFilter ? { submittedAt: { $gte: periodStart } } : {};
+        const hasDateRangeFilter = Boolean(rangeStart && rangeEnd);
+        const orderFilter = hasDateRangeFilter
+            ? {
+                date: {
+                    $gte: Math.floor(rangeStart.getTime() / 1000),
+                    $lte: Math.floor(rangeEnd.getTime() / 1000),
+                }
+            }
+            : {};
+
+        const productFilter = hasDateRangeFilter
+            ? {
+                date: {
+                    $gte: Math.floor(rangeStart.getTime() / 1000),
+                    $lte: Math.floor(rangeEnd.getTime() / 1000),
+                }
+            }
+            : {};
+
+        const contactFilter = hasDateRangeFilter
+            ? {
+                submittedAt: {
+                    $gte: rangeStart,
+                    $lte: rangeEnd,
+                }
+            }
+            : {};
 
         // Fetch all statistics
         const [
@@ -68,7 +125,7 @@ export async function GET(request) {
             recentOrders,
             allOrders,
         ] = await Promise.all([
-            hasPeriodFilter
+            hasDateRangeFilter
                 ? Order.distinct('userId', orderFilter).then(users => users.filter(Boolean).length)
                 : User.countDocuments(),
             Order.countDocuments(orderFilter),
@@ -105,6 +162,8 @@ export async function GET(request) {
                 })),
                 ordersByStatus,
                 period,
+                startDate: hasDateRangeFilter ? rangeStart.toISOString() : null,
+                endDate: hasDateRangeFilter ? rangeEnd.toISOString() : null,
             }
         });
     } catch (error) {

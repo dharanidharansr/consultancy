@@ -11,6 +11,8 @@ const OwnerDashboard = () => {
     const router = useRouter();
     const [loading, setLoading] = useState(true);
     const [selectedPeriod, setSelectedPeriod] = useState('all');
+    const [customStartDate, setCustomStartDate] = useState('');
+    const [customEndDate, setCustomEndDate] = useState('');
     const [stats, setStats] = useState({
         totalUsers: 0,
         totalOrders: 0,
@@ -20,15 +22,32 @@ const OwnerDashboard = () => {
         recentOrders: [],
         ordersByStatus: {},
         period: 'all',
+        startDate: null,
+        endDate: null,
     });
 
-    const fetchOwnerStats = useCallback(async (period = selectedPeriod) => {
+    const fetchOwnerStats = useCallback(async ({
+        period = selectedPeriod,
+        startDate = customStartDate,
+        endDate = customEndDate,
+    } = {}) => {
         try {
             setLoading(true);
             const token = await getToken();
 
+            const params = { period };
+            if (period === 'custom') {
+                if (!startDate || !endDate) {
+                    toast.error('Please select both start and end dates');
+                    setLoading(false);
+                    return;
+                }
+                params.startDate = startDate;
+                params.endDate = endDate;
+            }
+
             const response = await axios.get('/api/admin/stats', {
-                params: { period },
+                params,
                 headers: { Authorization: `Bearer ${token}` }
             });
 
@@ -43,24 +62,48 @@ const OwnerDashboard = () => {
         } finally {
             setLoading(false);
         }
-    }, [getToken, selectedPeriod]);
+    }, [getToken, selectedPeriod, customStartDate, customEndDate]);
 
     useEffect(() => {
-        if (user) {
-            fetchOwnerStats(selectedPeriod);
+        if (user && selectedPeriod !== 'custom') {
+            fetchOwnerStats({ period: selectedPeriod });
         }
     }, [user, fetchOwnerStats, selectedPeriod]);
+
+    useEffect(() => {
+        if (
+            user &&
+            selectedPeriod === 'custom' &&
+            customStartDate &&
+            customEndDate
+        ) {
+            fetchOwnerStats({
+                period: 'custom',
+                startDate: customStartDate,
+                endDate: customEndDate,
+            });
+        }
+    }, [
+        user,
+        selectedPeriod,
+        customStartDate,
+        customEndDate,
+        fetchOwnerStats,
+    ]);
 
     const periodOptions = [
         { value: 'all', label: 'All Time' },
         { value: 'weekly', label: 'Weekly' },
         { value: 'monthly', label: 'Monthly' },
+        { value: 'custom', label: 'Custom' },
     ];
 
     const periodLabel = stats.period === 'weekly'
         ? 'Last 7 Days'
         : stats.period === 'monthly'
             ? 'Last 30 Days'
+            : stats.period === 'custom' && stats.startDate && stats.endDate
+                ? `${new Date(stats.startDate).toLocaleDateString()} - ${new Date(stats.endDate).toLocaleDateString()}`
             : 'All Time';
 
     const StatCard = ({ label, value, icon, color = 'blue' }) => {
@@ -122,6 +165,43 @@ const OwnerDashboard = () => {
                         ))}
                     </div>
                 </div>
+
+                {selectedPeriod === 'custom' && (
+                    <div className="flex flex-col sm:flex-row sm:items-end gap-3 mt-3 bg-white border border-gray-200 rounded-xl p-3">
+                        <div className="flex flex-col">
+                            <label htmlFor="custom-start-date" className="text-xs font-medium text-gray-600 mb-1">Start Date</label>
+                            <input
+                                id="custom-start-date"
+                                type="date"
+                                value={customStartDate}
+                                onChange={(e) => setCustomStartDate(e.target.value)}
+                                className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                            />
+                        </div>
+                        <div className="flex flex-col">
+                            <label htmlFor="custom-end-date" className="text-xs font-medium text-gray-600 mb-1">End Date</label>
+                            <input
+                                id="custom-end-date"
+                                type="date"
+                                value={customEndDate}
+                                min={customStartDate || undefined}
+                                onChange={(e) => setCustomEndDate(e.target.value)}
+                                className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                            />
+                        </div>
+                        <button
+                            onClick={() => fetchOwnerStats({
+                                period: 'custom',
+                                startDate: customStartDate,
+                                endDate: customEndDate,
+                            })}
+                            className="h-10 px-4 rounded-lg bg-orange-500 text-white text-sm font-medium hover:bg-orange-600"
+                        >
+                            Apply
+                        </button>
+                    </div>
+                )}
+
                 <p className="text-gray-600 mt-2">Welcome back, {user?.name || 'Partner'} · Showing {periodLabel}</p>
             </div>
 
@@ -161,7 +241,11 @@ const OwnerDashboard = () => {
                         </div>
                     </Link>
                     <button
-                        onClick={() => fetchOwnerStats(selectedPeriod)}
+                        onClick={() => fetchOwnerStats({
+                            period: selectedPeriod,
+                            startDate: customStartDate,
+                            endDate: customEndDate,
+                        })}
                         className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-lg transition cursor-pointer text-center"
                     >
                         <div className="text-2xl mb-2">🔄</div>
