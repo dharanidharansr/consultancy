@@ -9,6 +9,8 @@ export default async function sitemap() {
         '/about',
         '/contact',
         '/all-products',
+        '/quick-commerce',
+        '/blog/quick-commerce-guide',
         '/cart',
         '/my-orders',
         '/order-placed',
