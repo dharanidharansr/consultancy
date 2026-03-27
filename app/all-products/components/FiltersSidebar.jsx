@@ -13,7 +13,8 @@ export default function FiltersSidebar({
     onColorChange,
     onPriceRangeChange,
     onClearAll,
-    products
+    categoryCounts,
+    brandCounts
 }) {
     return (
         <aside className="hidden lg:block w-72 pt-12 pr-8 max-h-screen overflow-y-auto">
@@ -44,7 +45,7 @@ export default function FiltersSidebar({
                                 />
                                 <span className="flex-1">{cat}</span>
                                 <span className="text-xs text-gray-400">
-                                    {products.filter(p => p.category === cat).length}
+                                    {categoryCounts?.[cat] || 0}
                                 </span>
                             </label>
                         ))}
@@ -68,7 +69,7 @@ export default function FiltersSidebar({
                                     />
                                     <span className="flex-1">{brand}</span>
                                     <span className="text-xs text-gray-400">
-                                        {products.filter(p => p.brand === brand).length}
+                                        {brandCounts?.[brand] || 0}
                                     </span>
                                 </label>
                             ))}

@@ -39,6 +39,8 @@ function AllProductsContent() {
     const [showFavorites, setShowFavorites] = useState(false);
     const [availableBrands, setAvailableBrands] = useState([]);
     const [availableColors, setAvailableColors] = useState([]);
+    const [categoryCounts, setCategoryCounts] = useState({});
+    const [brandCounts, setBrandCounts] = useState({});
     const [showMobileFilters, setShowMobileFilters] = useState(false);
 
     const searchParams = useSearchParams();
@@ -50,9 +52,13 @@ function AllProductsContent() {
             if (data.success) {
                 setProducts(data.products);
                 setPagination(data.pagination);
+                setCategoryCounts(data.facets?.categoryCounts || {});
+                setBrandCounts(data.facets?.brandCounts || {});
 
                 // Extract unique brands and colors from products
-                const brands = [...new Set(data.products.map(p => p.brand).filter(Boolean))].sort();
+                const brands = data.facets?.brands?.length
+                    ? data.facets.brands
+                    : [...new Set(data.products.map(p => p.brand).filter(Boolean))].sort();
                 const colors = [...new Set(data.products.flatMap(p => {
                     // Handle both old and new inventory formats
                     if (p.inventory && p.inventory.length > 0) {
@@ -277,7 +283,8 @@ function AllProductsContent() {
                     onColorChange={handleColorChange}
                     onPriceRangeChange={setPriceRange}
                     onClearAll={clearAllFilters}
-                    products={products}
+                    categoryCounts={categoryCounts}
+                    brandCounts={brandCounts}
                 />
                 {/* Main content */}
                 <div className="flex-1 flex flex-col items-start">

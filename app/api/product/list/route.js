@@ -23,9 +23,40 @@ export async function GET(request) {
 
         const products = rawProducts.map(product => product.toObject());
 
+        // Build global facet counts across full catalog (not just current page)
+        const [categoryFacetRows, brandFacetRows] = await Promise.all([
+            Product.aggregate([
+                { $match: { category: { $exists: true, $ne: null } } },
+                { $group: { _id: "$category", count: { $sum: 1 } } },
+                { $sort: { _id: 1 } }
+            ]),
+            Product.aggregate([
+                { $match: { brand: { $exists: true, $ne: null } } },
+                { $group: { _id: "$brand", count: { $sum: 1 } } },
+                { $sort: { _id: 1 } }
+            ])
+        ]);
+
+        const categoryCounts = categoryFacetRows.reduce((acc, row) => {
+            if (row?._id) acc[row._id] = row.count;
+            return acc;
+        }, {});
+
+        const brandCounts = brandFacetRows.reduce((acc, row) => {
+            if (row?._id) acc[row._id] = row.count;
+            return acc;
+        }, {});
+
+        const brands = Object.keys(brandCounts).sort();
+
         return NextResponse.json({
             success: true,
             products,
+            facets: {
+                categoryCounts,
+                brandCounts,
+                brands
+            },
             pagination: {
                 total: totalProducts,
                 page,
